@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 )
 
@@ -39,7 +40,30 @@ func Opponent(guess chan Choice, please chan struct{}) {
 	}
 }
 
-var Cheat func(guess chan Choice) chan Choice
+// var Cheat func(guess chan Choice) chan Choice
+func Cheat(guess chan Choice) chan Choice {
+	out := make(chan Choice)
+	go func() {
+		myGuess := 0
+		for c := range guess {
+			if c.Who == 1 {
+				switch c.Guess {
+				case ROCK:
+					myGuess = PAPER
+				case PAPER:
+					myGuess = SCISSORS
+				case SCISSORS:
+					myGuess = ROCK
+				}
+			} else {
+				c.Guess = myGuess
+			}
+			fmt.Println(c.Guess, c.Who)
+			out <- c
+		}
+	}()
+	return out
+}
 
 func Me(guess chan Choice, please chan struct{}) {
 	for i := 0; i < 3; i++ {
