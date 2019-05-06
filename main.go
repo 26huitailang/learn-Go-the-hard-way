@@ -58,7 +58,43 @@ func MstSeq(i, j int) {
 }
 
 //compute chunk(i,j)
-var chunk func(i, j int)
+// var chunk func(i, j int)
+func chunk(i, j int) {
+	var bb int
+	il := (i * (n + 1)) / vp
+	//block-low for i
+	ih := ((i+1)*(n+1))/vp - 1
+	//block-high for i
+	jl := (j * (n + 1)) / vp
+	//block-low for j
+	jh := ((j+1)*(n+1))/vp - 1
+	//block-high for j
+	if i < j {
+		// not a tile on the diagonal
+		<-h[i][j-1] // receive from the left
+		<-v[i+1][j] // receive from below
+	}
+	for ii := ih; ii >= il; ii-- {
+		if i == j {
+			bb = ii
+		} else {
+			bb = jl
+		}
+		for jj := bb; jj <= jh; jj++ {
+			MstSeq(ii, jj)
+		}
+	}
+	if j < vp-1 { // not a tile on the right border
+		h[i][j] <- struct{}{}
+	}
+	if i > 0 {
+		// not a tile on the top border
+		v[i][j] <- struct{}{}
+	}
+	if i == 0 && j == vp-1 { //the last tile
+		finish <- struct{}{}
+	}
+}
 
 func init() {
 	for i := 0; i < vp; i++ {
@@ -81,12 +117,12 @@ func main() {
 			MstSeq(i, j)
 		}
 	}
-	if P(0, n, 0, n) == `0 5 20 24 32 44 
-0 0 10 14 22 34 
-0 0 0 2 7 15 
-0 0 0 0 3 10 
-0 0 0 0 0 4 
-0 0 0 0 0 0 
+	if P(0, n, 0, n) == `0 5 20 24 32 44
+0 0 10 14 22 34
+0 0 0 2 7 15
+0 0 0 0 3 10
+0 0 0 0 0 4
+0 0 0 0 0 0
 ` {
 		println(`Again,Go is designed for concurrency,it makes it easy to parrallel.This exercise is about parrallel dynamic programming.
 We use the optimal binary search tree problem to show the multi-core parallel code in Go.
@@ -95,7 +131,7 @@ And a tree mean search time is the total probability of all nodes plus the miniu
 The sequential MST method has been given in the main.go
 In fact the every cost[i][j] depencies on their left and bottom neighbor.
 So we can divide the computation into chunks like that (assume n is 5):
-  
+
   * * *    | * * *
     * * -> | * * *
       *    | * * *
