@@ -30,25 +30,25 @@ func (s *Server) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			} else {
 				//TODO:pass the contex to the function and write return value to res.
 				fmt.Println("todo")
-				ctx := &Context{}
+				ctx := &Context{req, res, s, map[string]string{}}
 				v := reflect.ValueOf(ctx) // 获得ctx的反射
 
-				// 初始化ctx的值
-				for n := 0; n < contextType.NumField(); n++ {
-					t := v.Elem().Field(n)
-					fmt.Println(t.Type())
-					switch t.Interface().(type) {
-					case *http.Request:
-						t.Set(reflect.ValueOf(req))
-					case *Server:
-						t.Set(reflect.ValueOf(s))
-					case map[string]string:
-						t.Set(reflect.ValueOf(map[string]string{}))
-					default:
-						// http.ResponseWriter是个interface，不知道怎么判断
-						t.Set(reflect.ValueOf(res))
-					}
-				}
+				// 初始化ctx的值，😂画蛇添足
+				// for n := 0; n < contextType.NumField(); n++ {
+				// 	t := v.Elem().Field(n)
+				// 	fmt.Println(t.Type())
+				// 	switch t.Interface().(type) {
+				// 	case *http.Request:
+				// 		t.Set(reflect.ValueOf(req))
+				// 	case *Server:
+				// 		t.Set(reflect.ValueOf(s))
+				// 	case map[string]string:
+				// 		t.Set(reflect.ValueOf(map[string]string{}))
+				// 	default:
+				// 		// http.ResponseWriter是个interface，不知道怎么判断
+				// 		t.Set(reflect.ValueOf(res))
+				// 	}
+				// }
 				fmt.Println(ctx)
 				// 调用传入的函数，并获得结果[]reflect.Value中的第一个，写入ResponseWriter
 				ret := r.handler.Call([]reflect.Value{v})[0]
