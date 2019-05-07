@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -28,14 +29,28 @@ type Middleware interface {
 
 //TODO:Use add a new Middleware that implements Handle(*Context)
 func (s *Server) Use(middlewares ...Middleware) {
+	s.middlewares = append(s.middlewares, middlewares...)
 }
 
 //TODO:Next calls next middleware.
 func (ctx *Context) Next() {
+	// 移动到下一个middlewares的下标，如果超出范围就返回
+	ctx.idx++
+	if ctx.idx > len(ctx.middlewares)-1 {
+		fmt.Println("no more middlewares")
+		return
+	}
+	// 继续调用middleware
+	ctx.Invok()
 }
 
 //TODO:Invok calls middleware at index of ctx.idx.
 func (ctx *Context) Invok() {
+	middleware := ctx.middlewares[ctx.idx]
+	switch middleware.(type) {
+	case Middleware:
+		middleware.Handle(ctx)
+	}
 }
 
 //implements http.Handle
