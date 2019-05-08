@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -11,6 +12,7 @@ func TestLex(t *testing.T) {
 	for t := l.token(); t.typ != tEOF; t = l.token() {
 		tokens = append(tokens, t)
 	}
+	fmt.Println(tokens)
 	if len(tokens) != 3 {
 		t.Fail()
 	}
@@ -29,6 +31,7 @@ func TestLex(t *testing.T) {
 	for t := l.token(); t.typ != tEOF; t = l.token() {
 		tokens = append(tokens, t)
 	}
+	fmt.Println(tokens)
 	if tokens[0].typ != tNUM && tokens[0].lit != ".11" {
 		t.Fail()
 	}

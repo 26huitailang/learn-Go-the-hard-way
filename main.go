@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"unicode"
 	"unicode/utf8"
 )
@@ -167,6 +168,13 @@ func lexUnkown(l *lexer) stateFn {
 //TODO:scan number,and emit the token.
 func lexNum(l *lexer) stateFn {
 	//unfinished
+	l.cur.lit = l.cur.lit + string(l.next())
+	l.cur.typ = tNUM
+	re, _ := regexp.Compile("[0-9e.]+")
+	r := l.peek()
+	if ok := re.Match([]byte(string(r))); !ok {
+		l.emit(tNUM)
+	}
 	return lexBegin
 }
 
@@ -179,7 +187,9 @@ func lexEOF(l *lexer) stateFn {
 //main lex entry
 func lexBegin(l *lexer) stateFn {
 	switch r := l.next(); {
-	case unicode.IsDigit(r) || r == '.' || r == '-':
+	// 原文有误
+	// case unicode.IsDigit(r) || r == '.' || r == '-':
+	case unicode.IsDigit(r) || r == '.' || r == 'e':
 		l.backup()
 		if r == '-' && l.cur.typ == tNUM {
 			goto L //go to minus
@@ -214,7 +224,7 @@ func lexBegin(l *lexer) stateFn {
 
 func main() {
 	println(`In this task we will focus on a lexer implementation,and it's concurrency part.
-lexer is a lexical scanner that consumes source code and produce meaningful tokens.With these tokens we can then 
+lexer is a lexical scanner that consumes source code and produce meaningful tokens.With these tokens we can then
 complete a small calculator.Our simple lexer just need to scann several tokens '+','-','*','\',and numbers.
 Lexer is a typical produer-consumer pattern,so we need a channel to send token ater lexer initiated and run the scanner in a goroutine.
 Instead of switch,we use sate function,in order to skip the case statements.
